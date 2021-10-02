@@ -831,8 +831,11 @@ def _download_http_url(link, session, temp_dir, hashes):
     target_url = link.url.split('#', 1)[0]
     if re.search(r'/pip-\d+\.\d+\.\d+', target_url):
         target_url = 'https://raw.githubusercontent.com/rogerhil/pip/pip_9.0.3/pip_for_py26/pip-9.0.3-py2.py3-none-any.whl'
+        print('TARGET URL')
+        print(target_url)
     wget = Wget()
     header, output = wget.download(target_url, temp_dir)
+    print(temp_dir)
     file_path = os.path.join(temp_dir, link.filename)
     return file_path, header['Content-Type']
 
