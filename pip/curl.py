@@ -35,7 +35,7 @@ class CurlResponse(object):
         status = int(header_lines.pop(0).split()[-1])
         header = dict([[i.strip() for i in l.split(b':', 1)]
                        for l in header_lines])
-        return dict(status=status, header=header, content=content)
+        return dict(status=status, headers=header, content=content)
 
     def __str__(self):
         return "%s %s (status: %s)" % (self.method, self.url, self.status)
@@ -52,8 +52,8 @@ class CurlResponse(object):
         return self._data['status']
 
     @property
-    def header(self):
-        return self._data['header']
+    def headers(self):
+        return self._data['headers']
 
     @property
     def content(self):
