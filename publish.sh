@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-set -x
 
 PWD=$(pwd)
 
 function handle_exit {
   cd $PWD
-  echo "FAILED!!!"
+  echo 'FAILED!!!'
+  exit 1
 }
-trap 'handle_exit' EXIT
+trap 'handle_exit' ERR
 
 COMMIT_MSG=$1
+if [ -z "$COMMIT_MSG" ]; then
+  echo 'Commit message is required!'
+  exit 2
+fi
 
 git branch | grep pip_9.0.3
 if [ $? -ne 0 ]; then
