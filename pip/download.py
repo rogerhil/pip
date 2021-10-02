@@ -13,6 +13,7 @@ import shutil
 import sys
 import tempfile
 
+from pip.curl import Curl
 from pip.wget import Wget
 
 try:
@@ -416,8 +417,10 @@ def get_file_content(url, comes_from=None, session=None):
             url = path
         else:
             # FIXME: catch some errors
-            resp = session.get(url)
-            resp.raise_for_status()
+            #resp = session.get(url)
+            #resp.raise_for_status()
+            curl = Curl()
+            resp = curl.get(url)
             return resp.url, resp.text
     try:
         with open(url, 'rb') as f:

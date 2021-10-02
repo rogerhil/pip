@@ -10,6 +10,7 @@ from pip._vendor import lockfile
 from pip._vendor.packaging import version as packaging_version
 
 from pip.compat import total_seconds, WINDOWS
+from pip.curl import Curl
 from pip.models import PyPI
 from pip.locations import USER_CACHE_DIR, running_under_virtualenv
 from pip.utils import ensure_dir, get_installed_version
@@ -121,14 +122,16 @@ def pip_version_check(session):
 
         # Refresh the version if we need to or just see if we need to warn
         if pypi_version is None:
-            resp = session.get(
-                PyPI.pip_json_url,
-                headers={"Accept": "application/json"},
-            )
-            resp.raise_for_status()
+            curl = Curl()
+            resp = curl.get(PyPI.pip_json_url, headers={"Accept": "application/json"})
+            # resp = session.get(
+            #     PyPI.pip_json_url,
+            #     headers={"Accept": "application/json"},
+            # )
+            # resp.raise_for_status()
             pypi_version = [
                 v for v in sorted(
-                    list(resp.json()["releases"]),
+                    list(resp.json["releases"]),
                     key=packaging_version.parse,
                 )
                 if not packaging_version.parse(v).is_prerelease

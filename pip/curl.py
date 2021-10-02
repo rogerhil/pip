@@ -1,4 +1,10 @@
-from pip.shell import ShellClient
+from json import dumps
+try:
+    from urllib.parse import urlencode  # pylint: disable=E0611,F0401
+except ImportError:
+    from urllib import urlencode
+
+from pip.shell import ShellClient, CommandFailed
 
 
 class RequestException(Exception):
@@ -62,12 +68,76 @@ class CurlResponse(object):
 
 class Curl(object):
 
+    base_cmd = "curl -iL -X %s"
+
     def __init__(self, shell=None):
         self.shell = shell or ShellClient()
 
-    def get(self, url):
-        output = self.shell.run('curl -iL %s' % url)
-        response = CurlResponse(output, 'get', url)
+    def request(self, method, url, params=None, data=None, json=None,
+                headers=None, user=None, password=None,
+                timeout=None, insecure=False, head_only=False):
+        headers = headers or {}
+        data = data or {}
+        json = json or {}
+        headers_str = ''
+        user_str = ''
+        content_type = ''
+        data_str = ''
+        timeout_str = ''
+        if timeout:
+            timeout_str = ' -m %s' % timeout
+        if params:
+            url = '%s?%s' % (url, urlencode(params))
+        if data:
+            content_type = 'application/x-www-form-urlencoded'
+            if isinstance(data, dict):
+                data = urlencode(data)
+            data_str = ' -d "%s"' % data.replace('\\', '\\\\').replace('"', '\\"')
+        elif json:
+            content_type = 'application/json'
+            data_str = " -d '%s'" % dumps(json)
+        if content_type and 'Content-Type' not in headers:
+            headers['Content-Type'] = content_type
+        if headers:
+            headers_str = " %s" % ' '.join(['-H "%s: %s"' % (k, v)
+                                            for k, v in headers.items()])
+        if user and password:
+            user_str = " -u %s:%s" % (user, password)
+        head = " --head" if head_only else ""
+        insecure = " --insecure" if insecure else ""
+        cmd = '%s%s%s%s%s%s%s "%s"' % (self.base_cmd % method.upper(),
+                                       user_str, headers_str, data_str,
+                                       timeout_str, insecure, head, url)
+        try:
+            output = self.shell.run(cmd)
+        except CommandFailed as err:
+            msg = "Curl command failed on %s: %s. Output: %s" % \
+                  (self.shell.host, cmd, str(err))
+            raise RequestFailed(msg, method, url)
+        response = CurlResponse(output, method, url)
         if not response.ok:
             raise ResponseFailed(response)
         return response
+
+    def get(self, url, params=None, headers=None, user=None, password=None,
+            timeout=None, insecure=False, head_only=False):
+        return self.request('get', url, params, headers=headers, user=user,
+                            password=password, timeout=timeout,
+                            insecure=insecure, head_only=head_only)
+
+    def post(self, url, params=None, data=None, json=None, headers=None,
+             user=None, password=None, timeout=None):
+        return self.request('post', url, params=params, data=data, json=json,
+                            headers=headers, user=user, password=password,
+                            timeout=timeout)
+
+    def put(self, url, params=None, data=None, json=None, headers=None,
+            user=None, password=None, timeout=None):
+        return self.request('put', url, params=params, data=data, json=json,
+                            headers=headers, user=user, password=password,
+                            timeout=timeout)
+
+    def delete(self, url, header=None, user=None, password=None,
+               timeout=None):
+        return self.request('delete', url, headers=header, timeout=timeout,
+                            user=user, password=password)
