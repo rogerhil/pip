@@ -29,11 +29,11 @@ class CurlResponse(object):
 
     @property
     def _data(self):
-        parts = self._output.split('\r\n\r\n')
+        parts = self._output.split(b'\r\n\r\n')
         content = parts.pop()
-        header_lines = parts.pop().split('\r\n')
+        header_lines = parts.pop().split(b'\r\n')
         status = int(header_lines.pop(0).split()[-1])
-        header = dict([[i.strip() for i in l.split(':', 1)]
+        header = dict([[i.strip() for i in l.split(b':', 1)]
                        for l in header_lines])
         return dict(status=status, header=header, content=content)
 

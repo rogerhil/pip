@@ -15,8 +15,3 @@ class Wget(object):
         if http_status != 200:
             raise Exception('Failed to to download %s. %s' % (url, output))
         return header, output
-
-
-status, header, output = wget(link.url, temp_dir)
-if status != 200:
-    raise Exception('Failed to to download %s. %s' % (link.url, output))
