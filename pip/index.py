@@ -805,7 +805,7 @@ class HTMLPage(object):
             # # or not. However we can check after we've downloaded it.
             # content_type = resp.headers.get('Content-Type', 'unknown')
 
-            content_type = resp.header.get('content-type', 'unknown')
+            content_type = resp.headers.get('content-type', 'unknown')
             if not content_type.lower().startswith("text/html"):
                 logger.debug(
                     'Skipping page %s because of Content-Type: %s',
