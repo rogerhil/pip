@@ -13,6 +13,8 @@ import shutil
 import sys
 import tempfile
 
+from pip.wget import Wget
+
 try:
     import ssl  # noqa
     HAS_TLS = True
@@ -827,6 +829,12 @@ def unpack_url(link, location, download_dir=None,
 def _download_http_url(link, session, temp_dir, hashes):
     """Download link url into temp_dir using provided session"""
     target_url = link.url.split('#', 1)[0]
+
+    wget = Wget()
+    header, output = wget.download(target_url, temp_dir)
+    file_path = os.path.join(temp_dir, link.filename)
+    return file_path, header['Content-Type']
+
     try:
         resp = session.get(
             target_url,

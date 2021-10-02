@@ -16,6 +16,7 @@ from pip._vendor.six.moves.urllib import parse as urllib_parse
 from pip._vendor.six.moves.urllib import request as urllib_request
 
 from pip.compat import ipaddress
+from pip.curl import Curl
 from pip.utils import (
     cached_property, splitext, normalize_path,
     ARCHIVE_EXTENSIONS, SUPPORTED_EXTENSIONS,
@@ -785,21 +786,26 @@ class HTMLPage(object):
                 url = urllib_parse.urljoin(url, 'index.html')
                 logger.debug(' file: URL is directory, getting %s', url)
 
-            resp = session.get(
-                url,
-                headers={
-                    "Accept": "text/html",
-                    "Cache-Control": "max-age=600",
-                },
-            )
-            resp.raise_for_status()
+            curl = Curl()
+            resp = curl.get(url)
 
-            # The check for archives above only works if the url ends with
-            # something that looks like an archive. However that is not a
-            # requirement of an url. Unless we issue a HEAD request on every
-            # url we cannot know ahead of time for sure if something is HTML
-            # or not. However we can check after we've downloaded it.
-            content_type = resp.headers.get('Content-Type', 'unknown')
+            # resp = session.get(
+            #     url,
+            #     headers={
+            #         "Accept": "text/html",
+            #         "Cache-Control": "max-age=600",
+            #     },
+            # )
+            # resp.raise_for_status()
+            #
+            # # The check for archives above only works if the url ends with
+            # # something that looks like an archive. However that is not a
+            # # requirement of an url. Unless we issue a HEAD request on every
+            # # url we cannot know ahead of time for sure if something is HTML
+            # # or not. However we can check after we've downloaded it.
+            # content_type = resp.headers.get('Content-Type', 'unknown')
+
+            content_type = resp.header.get('content-type', 'unknown')
             if not content_type.lower().startswith("text/html"):
                 logger.debug(
                     'Skipping page %s because of Content-Type: %s',
