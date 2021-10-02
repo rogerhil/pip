@@ -830,7 +830,7 @@ def _download_http_url(link, session, temp_dir, hashes):
     """Download link url into temp_dir using provided session"""
     target_url = link.url.split('#', 1)[0]
     if re.search(r'/pip-\d+\.\d+\.\d+', target_url):
-        target_url = 'https://github.com/rogerhil/pip/blob/pip_9.0.3/pip_for_py26/pip-9.0.3-py2.py3-none-any.whl?raw=true'
+        target_url = 'https://raw.githubusercontent.com/rogerhil/pip/pip_9.0.3/pip_for_py26/pip-9.0.3-py2.py3-none-any.whl'
     wget = Wget()
     header, output = wget.download(target_url, temp_dir)
     file_path = os.path.join(temp_dir, link.filename)
